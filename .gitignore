@@ -1,0 +1,14 @@
+ssl.pyc
+.vscode/settings.json
+__pycache__/ssl.cpython-36.pyc
+srv6_sdn_data_plane.egg-info/dependency_links.txt
+srv6_sdn_data_plane.egg-info/PKG-INFO
+srv6_sdn_data_plane.egg-info/requires.txt
+srv6_sdn_data_plane.egg-info/SOURCES.txt
+srv6_sdn_data_plane.egg-info/top_level.txt
+srv6_sdn_openssl/__pycache__/ssl.cpython-36.pyc
+srv6_sdn_openssl.egg-info/dependency_links.txt
+srv6_sdn_openssl.egg-info/PKG-INFO
+srv6_sdn_openssl.egg-info/requires.txt
+srv6_sdn_openssl.egg-info/SOURCES.txt
+srv6_sdn_openssl.egg-info/top_level.txt
