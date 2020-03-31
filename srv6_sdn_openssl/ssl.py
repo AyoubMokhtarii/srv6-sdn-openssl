@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 # General imports
+import logging
 import six
 import os
 from datetime import datetime, timedelta
@@ -11,6 +12,28 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
+
+
+def get_cert_expiration(crt_pem):
+    # Get the certificate
+    crt = x509.load_pem_x509_certificate(crt_pem, default_backend())
+    # Return the expiration
+    return crt.not_valid_after
+
+
+def validate_cert(crt_pem):
+    # Get the certificate
+    crt = x509.load_pem_x509_certificate(crt_pem, default_backend())
+    # Get the current datetime
+    now = datetime.utcnow()
+    if now < crt.not_valid_before:
+        logging.info('Certificate not yet valid')
+        return False
+    if now > crt.not_valid_after:
+        logging.info('Certificate is expired')
+        return False
+    # Certificate is valid
+    return True
 
 
 def generate_rsa_key(public_exponent=65537, key_size=2048):
@@ -125,7 +148,7 @@ def generate_csr(hostname, ip_addresses=None, key=None):
     return csr_pem, key_pem
 
 
-def generate_cert(csr_pem, ca_crt_pem, key=None):
+def generate_cert(csr_pem, ca_crt_pem, key=None, expires_after=None):
     # Load CSR PEM and generate a CSR object
     csr = x509.load_pem_x509_csr(csr_pem, default_backend())
     # Load CA cert PEM and generate a cert object
@@ -175,6 +198,9 @@ def generate_cert(csr_pem, ca_crt_pem, key=None):
     #basic_contraints = x509.BasicConstraints(ca=True, path_length=0)
     # Establish the validity of the certificate
     now = datetime.utcnow()
+    # Compute certificate expiration
+    if expires_after is None:
+        expires_after = 10*365    
     # Generate the certificate
     cert = (
         x509.CertificateBuilder()
@@ -183,7 +209,7 @@ def generate_cert(csr_pem, ca_crt_pem, key=None):
         .public_key(csr.public_key())
         .serial_number(x509.random_serial_number())
         .not_valid_before(now)
-        .not_valid_after(now + timedelta(days=10*365))
+        .not_valid_after(now + timedelta(days=expires_after))
         .add_extension(basic_contraints, False)
         .add_extension(san, False)
         .sign(key, hashes.SHA256(), default_backend())
